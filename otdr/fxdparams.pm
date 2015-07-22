@@ -138,7 +138,7 @@ sub _process_fxdparams2
 	#
 	# type: display type: 'v' (value) or 'h' (hexidecimal) or 's' (string)
 	["date/time",0,4,'v','','',''], # ............... 0-3 seconds in Unix time
-	["unknown 1",0,2,'h','','',''], # ............... 4-5 ????
+	["unknown 1",4,2,'h','','',''], # ............... 4-5 ????
 	["wavelength",6,2,'v',0.1,1,'nm'], # ............ 6-7 wavelength (nm)
 	["unknown 2",8,10,'h','','',''], # .............. 8-17 ???
 	["pulse width",18,2,'v','',0,'ns'],  # .......... 18-19 pulse width (ns)
@@ -148,7 +148,7 @@ sub _process_fxdparams2
 	["BC", 32,2,'v',-0.1,2,'dB'], # ................. 32-33 backscattering coeff
 	["num averages", 34,4,'v','','',''], # .......... 34-37 number of averages
 	["range", 38,4,'v',1e-6,6,'km'], # .............. 38-41 range (km)
-	["unknown 3",42,16,'h','','',''], # ............. 42-16 ???
+	["unknown 3",42,16,'h','','',''], # ............. 42-57 ???
 	["loss thr", 58,2,'v',0.001,3,'dB'], # .......... 58-59 loss threshold
 	["refl thr", 60,2,'v',-0.001,3,'dB'], # ......... 60-61 reflection threshold
 	["EOT thr",62,2,'v',0.001,3,'dB'], # ............ 62-63 end-of-transmission threshold
