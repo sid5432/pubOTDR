@@ -23,7 +23,7 @@ $otdr::utils::subpre = $subpre;
 my $MAGIC_SCALE = 1.498962239; # scaling factor used to correct for length
 
 # -----------------------------------------------
-my $filename = shift or die("USAGE: $0 SOR_filename [dump(yes or no]\n");
+my $filename = shift or die("USAGE: $0 SOR_filename [dump(yes or no)]\n");
 my $dump = shift || "no";
   
 my $output = $filename;
@@ -57,6 +57,9 @@ my @buffer = split //, $buffer;
 # stash to save everything
 my $var = {};
 $var->{MAGIC_SCALE} = $MAGIC_SCALE;
+
+# extra scaling factor of distance (for old AFL data)
+$var->{xscaling} = 1.0;
 
 # get header
 my ($str,$hex,$count,$pos);

@@ -43,6 +43,12 @@ sub _process_datapts1
     
     my ($str,$hex,$count, $val);
     
+    if ( $var->{'supparams::OTDR'} eq 'OFL250' ) {
+	# old Noyes/AFL OFL250 model is off by factor of 10
+	print $otdr::utils::subpre,"Adjusting for old OFL250 model\n";
+	$var->{xscaling} = 0.1;
+    }
+    
     # initial 12 bytes
     print $otdr::utils::subpre,"[initial 12 byte header follows]\n";
     
@@ -98,7 +104,8 @@ sub _process_datapts1
 	}else{ # invert
 	    $val = -$dlist[$i]*0.001;
 	}
-	$x = $dx * $i; # more work but (maybe) less rounding issues
+	# more work but (maybe) less rounding issues
+	$x = $dx * $i * $var->{xscaling} / 1000.0; # output in meters
 	print OUTPUT "$x\t$val\n";
     }
     close OUTPUT;
