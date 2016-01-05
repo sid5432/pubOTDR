@@ -9,7 +9,7 @@ use otdr::supparams qw(process_supparams);
 use otdr::fxdparams qw(process_fxdparams);
 use otdr::datapts qw(process_datapts);
 use otdr::keyevents qw(process_keyevents);
-use otdr::cksum qw(process_cksum);
+use otdr::cksum qw(process_cksum calc_cksum);
 
 my $pre    = "MAIN: ";
 my $subpre = "    : ";
@@ -149,6 +149,7 @@ foreach my $block ( @blocklist ) {
 	process_keyevents(\@buffer, $pos, $var);
     }elsif( $name eq 'Cksum' ) {
 	process_cksum(\@buffer, $pos, $var);
+	calc_cksum(\@buffer, $var);
     }
 }
 
