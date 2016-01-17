@@ -1,16 +1,15 @@
 #!/usr/bin/perl -w
-package otdr::cksum;
 use strict;
 use Digest::CRC;
 use Exporter;
-use FindBin qw($Bin);
-use lib "$Bin/.";
+# use FindBin qw($Bin);
+# use lib "$Bin/../..";
 use otdr::utils qw(get_val get_signed_val get_string get_hexstring);
 
 our @ISA = qw( Exporter );
 our @EXPORT_OK = qw( process_cksum calc_cksum );
 
-*LOG = *STDERR;
+package otdr;
 
 sub process_cksum
 {
@@ -24,7 +23,7 @@ sub process_cksum
     if ( $var->{flavor} == 2 ) {
 	($str,$hex,$count,$pos)= get_string( $bufref, $pos );
 	if ( $str ne 'Cksum' ) {
-	    print $otdr::utils::pre," ERROR: should be Cksum; got '$str' instead\n";
+	    print $otdr::LOG $otdr::utils::pre," ERROR: should be Cksum; got '$str' instead\n";
 	    return;
 	}
     }
@@ -34,7 +33,7 @@ sub process_cksum
     ($val,$pos) = get_val($bufref, $pos, 2);
     my $disp = sprintf "0x%04X", $val;
     
-    print $otdr::utils::subpre,"checksum $val ($disp)\n";
+    print $otdr::LOG $otdr::utils::subpre,"checksum $val ($disp)\n";
     return;
 }
 
@@ -64,10 +63,10 @@ sub calc_cksum
 	$ctx->add("123456789");
 	$digest = $ctx->digest;
 	if ( $digest != 0x29b1 ) {
-	    print $otdr::utils::subpre,"CRC-16/CCITT-FALSE algorithm failed!\n";
+	    print $otdr::LOG $otdr::utils::subpre,"CRC-16/CCITT-FALSE algorithm failed!\n";
 	}else{
 	    # printf "* CRC-16/CCITT-FALSE digest check is %d (0x%x)\n", $digest, $digest;
-	    print $otdr::utils::subpre,"[ CRC-16/CCITT-FALSE digest algorithm looks okay ]\n";
+	    print $otdr::LOG $otdr::utils::subpre,"[ CRC-16/CCITT-FALSE digest algorithm looks okay ]\n";
 	}
     }
     my $buffer = join('',@{$bufref});
@@ -76,9 +75,9 @@ sub calc_cksum
     $digest = $ctx->digest;
     # print $otdr::utils::subpre,"CRC-16/CCITT-FALSE digest is %d (0x%x)\n", $digest, $digest;
     if ( $digest == 0 ) {
-	print $otdr::utils::subpre,"checksum MATCHES!\n";
+	print $otdr::LOG $otdr::utils::subpre,"checksum MATCHES!\n";
     }else{
-	print $otdr::utils::subpre,"checksum DOES NOT MATCH!\n";
+	print $otdr::LOG $otdr::utils::subpre,"checksum DOES NOT MATCH!\n";
     }
     
     return $digest;

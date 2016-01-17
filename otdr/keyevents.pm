@@ -1,15 +1,16 @@
 #!/usr/bin/perl -w
-package otdr::keyevents;
 use strict;
 use Exporter;
-use FindBin qw($Bin);
-use lib "$Bin/.";
+# use FindBin qw($Bin);
+# use lib "$Bin/../..";
 use otdr::utils qw(get_val get_signed_val get_string get_hexstring);
 
 our @ISA = qw( Exporter );
 our @EXPORT_OK = qw( process_keyevents );
 
-*LOG = *STDERR;
+package otdr;
+
+# *LOG = *STDERR;
 
 sub process_keyevents
 {
@@ -25,7 +26,7 @@ sub process_keyevents
 	return _process_keyevents2($bufref, $pos, $var);
     }
     
-    print $otdr::utils::pre," Unrecognized flavor $var->{flavor}\n";
+    print $otdr::LOG $otdr::utils::pre," Unrecognized flavor $var->{flavor}\n";
     return;
 }
 
@@ -44,11 +45,11 @@ sub _process_keyevents1
     ($val,$pos) = get_val($bufref, $pos, 2);
     my $nev = $val;
       
-    print $subpre,"$nev events\n";
+    print $otdr::LOG $subpre,"$nev events\n";
     $var->{num_events} = $nev;
     
     
-    my $factor = 1e-4 * $var->{MAGIC_SCALE}/$var->{"fxdparams::index"};
+    my $factor = 1e-4 * $otdr::sol / $var->{"fxdparams::index"};
     
     my ($id,$dist,$slope,$splice,$refl);
     my $type;
@@ -98,12 +99,12 @@ sub _process_keyevents1
 	
 	($comments,$hex,$count,$pos) = get_string( $bufref, $pos );
 	
-	print $subpre,"Event $id: type $type\n";
-	print $subpre,$subpre," distance: $dist km\n";
-	print $subpre,$subpre," slope: $slope dB/km\n";
-	print $subpre,$subpre," splice loss: $splice dB\n";
-	print $subpre,$subpre," refl loss: $refl dB\n";
-	print $subpre,$subpre," comments: $comments\n";
+	print $otdr::LOG $subpre,"Event $id: type $type\n";
+	print $otdr::LOG $subpre,$subpre," distance: $dist km\n";
+	print $otdr::LOG $subpre,$subpre," slope: $slope dB/km\n";
+	print $otdr::LOG $subpre,$subpre," splice loss: $splice dB\n";
+	print $otdr::LOG $subpre,$subpre," refl loss: $refl dB\n";
+	print $otdr::LOG $subpre,$subpre," comments: $comments\n";
     }
     
     my ($total_loss,$loss_start,$loss_finish, $orl, $orl_start,$orl_finish);
@@ -136,13 +137,13 @@ sub _process_keyevents1
     ($orl_finish,$pos) = get_val($bufref, $pos, 4);        # 18-21: ORL finish position
     $orl_finish *= $factor;
     
-    print $subpre,"Summary:\n";
-    print $subpre,$subpre," total loss: $total_loss dB\n";
-    print $subpre,$subpre," ORL: $orl dB\n";
-    print $subpre,$subpre," loss start: $loss_start km\n";
-    print $subpre,$subpre," loss end: $loss_finish km\n";
-    print $subpre,$subpre," ORL start: $orl_start km\n";
-    print $subpre,$subpre," ORL finish: $orl_finish km)\n";
+    print $otdr::LOG $subpre,"Summary:\n";
+    print $otdr::LOG $subpre,$subpre," total loss: $total_loss dB\n";
+    print $otdr::LOG $subpre,$subpre," ORL: $orl dB\n";
+    print $otdr::LOG $subpre,$subpre," loss start: $loss_start km\n";
+    print $otdr::LOG $subpre,$subpre," loss end: $loss_finish km\n";
+    print $otdr::LOG $subpre,$subpre," ORL start: $orl_start km\n";
+    print $otdr::LOG $subpre,$subpre," ORL finish: $orl_finish km)\n";
     
     return;
 }
@@ -160,7 +161,7 @@ sub _process_keyevents2
     # header and '\0'
     ($str,$hex,$count,$pos)= get_string( $bufref, $pos );
     if ( $str ne 'KeyEvents' ) {
-	print $otdr::utils::pre," ERROR: should be KeyEvents; got '$str' instead\n";
+	print $otdr::LOG $otdr::utils::pre," ERROR: should be KeyEvents; got '$str' instead\n";
 	return;
     }
     
@@ -168,10 +169,10 @@ sub _process_keyevents2
     ($val,$pos) = get_val($bufref, $pos, 2);
     my $nev = $val;
       
-    print $subpre,"$nev events\n";
+    print $otdr::LOG $subpre,"$nev events\n";
     $var->{num_events} = $nev;
     
-    my $factor = 1e-4 * $var->{MAGIC_SCALE}/$var->{"fxdparams::index"};
+    my $factor = 1e-4 * $otdr::sol / $var->{"fxdparams::index"};
     
     my ($id,$dist,$slope,$splice,$refl);
     my $type;
@@ -236,18 +237,18 @@ sub _process_keyevents2
 	
 	($comments,$hex,$count,$pos) = get_string( $bufref, $pos );
 	
-	print $subpre,"Event $id: type $type\n";
-	print $subpre,$subpre," distance: $dist km\n";
-	print $subpre,$subpre," slope: $slope dB/km\n";
-	print $subpre,$subpre," splice loss: $splice dB\n";
-	print $subpre,$subpre," refl loss: $refl dB\n";
-	print $subpre,$subpre," end of previous event: $end_prev km\n";
-	print $subpre,$subpre," start of current event: $start_curr km\n";
-	print $subpre,$subpre," end of current event: $end_curr km\n";
-	print $subpre,$subpre," start of next event: $start_next km\n";
-	print $subpre,$subpre," peak point of event: $pkpos km\n";
+	print $otdr::LOG $subpre,"Event $id: type $type\n";
+	print $otdr::LOG $subpre,$subpre," distance: $dist km\n";
+	print $otdr::LOG $subpre,$subpre," slope: $slope dB/km\n";
+	print $otdr::LOG $subpre,$subpre," splice loss: $splice dB\n";
+	print $otdr::LOG $subpre,$subpre," refl loss: $refl dB\n";
+	print $otdr::LOG $subpre,$subpre," end of previous event: $end_prev km\n";
+	print $otdr::LOG $subpre,$subpre," start of current event: $start_curr km\n";
+	print $otdr::LOG $subpre,$subpre," end of current event: $end_curr km\n";
+	print $otdr::LOG $subpre,$subpre," start of next event: $start_next km\n";
+	print $otdr::LOG $subpre,$subpre," peak point of event: $pkpos km\n";
 	
-	print $subpre,$subpre," comments: $comments\n";
+	print $otdr::LOG $subpre,$subpre," comments: $comments\n";
     }
     
     my ($total_loss,$loss_start,$loss_finish, $orl, $orl_start,$orl_finish);
@@ -272,13 +273,13 @@ sub _process_keyevents2
     ($orl_finish,$pos) = get_val($bufref, $pos, 4);        # 18-21: ORL finish position
     $orl_finish *= $factor;
     
-    print $subpre,"Summary:\n";
-    print $subpre,$subpre," total loss: $total_loss dB\n";
-    print $subpre,$subpre," ORL: $orl dB\n";
-    print $subpre,$subpre," loss start: $loss_start km\n";
-    print $subpre,$subpre," loss end: $loss_finish km\n";
-    print $subpre,$subpre," ORL start: $orl_start km\n";
-    print $subpre,$subpre," ORL finish: $orl_finish km)\n";
+    print $otdr::LOG $subpre,"Summary:\n";
+    print $otdr::LOG $subpre,$subpre," total loss: $total_loss dB\n";
+    print $otdr::LOG $subpre,$subpre," ORL: $orl dB\n";
+    print $otdr::LOG $subpre,$subpre," loss start: $loss_start km\n";
+    print $otdr::LOG $subpre,$subpre," loss end: $loss_finish km\n";
+    print $otdr::LOG $subpre,$subpre," ORL start: $orl_start km\n";
+    print $otdr::LOG $subpre,$subpre," ORL finish: $orl_finish km)\n";
     
     return;
 }

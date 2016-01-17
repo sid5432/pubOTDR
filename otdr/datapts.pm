@@ -1,15 +1,15 @@
 #!/usr/bin/perl -w
-package otdr::datapts;
+package otdr;
 use strict;
 use Exporter;
-use FindBin qw($Bin);
-use lib "$Bin/.";
+# use FindBin qw($Bin);
+# use lib "$Bin/../..";
 use otdr::utils qw(get_val get_signed_val get_string get_hexstring);
 
 our @ISA = qw( Exporter );
 our @EXPORT_OK = qw( process_datapts );
 
-*LOG = *STDERR;
+# *LOG = *STDERR;
 
 # method used by STV: minimum reading shifted to zero
 # method used by AFL/Noyes Trace.Net: maximum reading shifted to zero (approx)
@@ -45,32 +45,32 @@ sub _process_datapts1
     
     if ( $var->{'supparams::OTDR'} eq 'OFL250' ) {
 	# old Noyes/AFL OFL250 model is off by factor of 10
-	print $otdr::utils::subpre,"Adjusting for old OFL250 model\n";
+	print $otdr::LOG $otdr::utils::subpre,"Adjusting for old OFL250 model\n";
 	$var->{xscaling} = 0.1;
     }
     
     # initial 12 bytes
-    print $otdr::utils::subpre,"[initial 12 byte header follows]\n";
+    print $otdr::LOG $otdr::utils::subpre,"[initial 12 byte header follows]\n";
     
     ($val,$pos) = get_val( $bufref, $pos, 4 );
-    print $otdr::utils::subpre,"num data points = $val\n";
+    print $otdr::LOG $otdr::utils::subpre,"num data points = $val\n";
     my $N = $val;
     
     if ( $N ne $var->{"fxdparams::num data points"} ) {
-	print $otdr::utils::subpre,"!!! WARNING !!! block says number of data points ".
+	print $otdr::LOG $otdr::utils::subpre,"!!! WARNING !!! block says number of data points ".
 	  "is $N instead of ",$var->{"fxdparams::num data points"},"\n";
     }
     
     ($val,$pos) = get_val( $bufref, $pos, 2 );
-    print $otdr::utils::subpre,"unknown #1 = $val\n";
+    print $otdr::LOG $otdr::utils::subpre,"unknown #1 = $val\n";
 
     ($val,$pos) = get_val( $bufref, $pos, 4 );
-    print $otdr::utils::subpre,"num data points again = $val\n";
+    print $otdr::LOG $otdr::utils::subpre,"num data points again = $val\n";
     
     ($val,$pos) = get_val( $bufref, $pos, 2 );
-    print $otdr::utils::subpre,"unknown #2 = $val\n";
+    print $otdr::LOG $otdr::utils::subpre,"unknown #2 = $val\n";
     
-    # print $otdr::utils::subpre,"next pos $pos\n";
+    # print $otdr::LOG $otdr::utils::subpre,"next pos $pos\n";
     
     # this is the adjusted value
     my $dx = $var->{"fxdparams::resolution"};
@@ -90,7 +90,7 @@ sub _process_datapts1
     my $disp_min = sprintf "%.3f", $min/1000.0;
     my $disp_max = sprintf "%.3f", $max/1000.0;
     
-    print $otdr::utils::subpre,"before applying offset: max $disp_max dB, min $disp_min dB\n";
+    print $otdr::LOG $otdr::utils::subpre,"before applying offset: max $disp_max dB, min $disp_min dB\n";
     
     open(OUTPUT,">$filename") or die("Can not write to $filename\n");
     my $x = 0;
@@ -127,33 +127,33 @@ sub _process_datapts2
     # header and '\0'
     ($str,$hex,$count,$pos)= get_string( $bufref, $pos );
     if ( $str ne 'DataPts' ) {
-	print $otdr::utils::pre," ERROR: should be DataPts; got '$str' instead\n";
+	print $otdr::LOG $otdr::utils::pre," ERROR: should be DataPts; got '$str' instead\n";
 	return;
     }
     # my $disp = sprintf "0x%02X", $pos;
     
     # initial 12 bytes
-    print $otdr::utils::subpre,"[initial 12 byte header follows]\n";
+    print $otdr::LOG $otdr::utils::subpre,"[initial 12 byte header follows]\n";
     
     ($val,$pos) = get_val( $bufref, $pos, 4 );
-    print $otdr::utils::subpre,"num data points = $val\n";
+    print $otdr::LOG $otdr::utils::subpre,"num data points = $val\n";
     my $N = $val;
     
     if ( $N ne $var->{"fxdparams::num data points"} ) {
-	print $otdr::utils::subpre,"!!! WARNING !!! block says number of data points ".
+	print $otdr::LOG $otdr::utils::subpre,"!!! WARNING !!! block says number of data points ".
 	  "is $N instead of ",$var->{"fxdparams::num data points"},"\n";
     }
     
     ($val,$pos) = get_val( $bufref, $pos, 2 );
-    print $otdr::utils::subpre,"unknown #1 = $val\n";
+    print $otdr::LOG $otdr::utils::subpre,"unknown #1 = $val\n";
 
     ($val,$pos) = get_val( $bufref, $pos, 4 );
-    print $otdr::utils::subpre,"num data points again = $val\n";
+    print $otdr::LOG $otdr::utils::subpre,"num data points again = $val\n";
     
     ($val,$pos) = get_val( $bufref, $pos, 2 );
-    print $otdr::utils::subpre,"unknown #2 = $val\n";
+    print $otdr::LOG $otdr::utils::subpre,"unknown #2 = $val\n";
     
-    # print $otdr::utils::subpre,"next pos $pos\n";
+    # print $otdr::LOG $otdr::utils::subpre,"next pos $pos\n";
     
     # this is the adjusted value
     my $dx = $var->{"fxdparams::resolution"};
@@ -173,7 +173,7 @@ sub _process_datapts2
     my $disp_min = sprintf "%.3f", $min/1000.0;
     my $disp_max = sprintf "%.3f", $max/1000.0;
     
-    print $otdr::utils::subpre,"before applying offset: max $disp_max dB, min $disp_min dB\n";
+    print $otdr::LOG $otdr::utils::subpre,"before applying offset: max $disp_max dB, min $disp_min dB\n";
     
     open(OUTPUT,">$filename") or die("Can not write to $filename\n");
     my $x = 0;

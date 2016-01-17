@@ -1,15 +1,16 @@
 #!/usr/bin/perl -w
-package otdr::fxdparams;
 use strict;
 use Exporter;
-use FindBin qw($Bin);
-use lib "$Bin/.";
+# use FindBin qw($Bin);
+# use lib "$Bin/../..";
 use otdr::utils qw(get_val get_signed_val get_string get_hexstring);
 
 our @ISA = qw( Exporter );
 our @EXPORT_OK = qw( process_fxdparams );
 
-*LOG = *STDERR;
+package otdr;
+
+# *LOG = *STDERR;
 
 sub process_fxdparams
 {
@@ -106,18 +107,18 @@ sub _process_fxdparams1
 	$var->{$label} = $str;
 	my $unit = $plist[$i][6];
 	
-	print $otdr::utils::subpre,"$i. $plist[$i][0]: $str $unit\n";
+	print $otdr::LOG $otdr::utils::subpre,"$i. $plist[$i][0]: $str $unit\n";
     }
     
     # correction/adjustment:
-    print "\n",$otdr::utils::subpre,"[adjusted for refractive index]\n";
+    print $otdr::LOG "\n",$otdr::utils::subpre,"[adjusted for refractive index]\n";
     my $ior = $var->{"fxdparams::index"};
-    my $dx = $var->{"fxdparams::sample spacing"} * $var->{MAGIC_SCALE}/$ior;
+    my $dx = $var->{"fxdparams::sample spacing"} * $otdr::sol / $ior;
     $var->{"fxdparams::range"} =  $dx * $var->{"fxdparams::num data points"};
     $var->{"fxdparams::resolution"} = $dx*1000.0; # in meters
     
-    print $otdr::utils::subpre,"resolution = ",($dx*1000.0)," m\n";
-    print $otdr::utils::subpre,"range      = ",$var->{"fxdparams::range"}," km\n";
+    print $otdr::LOG $otdr::utils::subpre,"resolution = ",($dx*1000.0)," m\n";
+    print $otdr::LOG $otdr::utils::subpre,"range      = ",$var->{"fxdparams::range"}," km\n";
     
     return;
 }
@@ -135,7 +136,7 @@ sub _process_fxdparams2
     # header and '\0'
     ($str,$hex,$count,$pos)= get_string( $bufref, $pos );
     if ( $str ne 'FxdParams' ) {
-	print $otdr::utils::pre," ERROR: should be FxdParams; got '$str' instead\n";
+	print $otdr::LOG $otdr::utils::pre," ERROR: should be FxdParams; got '$str' instead\n";
 	return;
     }
     my $disp = sprintf "0x%02X", $pos;
@@ -166,7 +167,7 @@ sub _process_fxdparams2
 	["averaging time", 38,2,'v',0.1,0,'sec'], # ..... 38-39 averaging time in seconds
 	
 	["range", 40,4,'v',2e-5,6,'km'], # .............. 40-43 range (km); note x2
-	["unknown 3",44,14,'h','','',''], # ............. 44-57 ???
+	["unknown 2",44,14,'h','','',''], # ............. 44-57 ???
 	
 	["loss thr", 58,2,'v',0.001,3,'dB'], # .......... 58-59 loss threshold
 	["refl thr", 60,2,'v',-0.001,3,'dB'], # ......... 60-61 reflection threshold
@@ -230,18 +231,18 @@ sub _process_fxdparams2
 	$var->{$label} = $str;
 	my $unit = $plist[$i][6];
 	
-	print $otdr::utils::subpre,"$i. $plist[$i][0]: $str $unit\n";
+	print $otdr::LOG $otdr::utils::subpre,"$i. $plist[$i][0]: $str $unit\n";
     }
     
     # correction/adjustment:
-    print "\n",$otdr::utils::subpre,"[adjusted for refractive index]\n";
+    print $otdr::LOG "\n",$otdr::utils::subpre,"[adjusted for refractive index]\n";
     my $ior = $var->{"fxdparams::index"};
-    my $dx = $var->{"fxdparams::sample spacing"} * $var->{MAGIC_SCALE}/$ior; # in km
+    my $dx = $var->{"fxdparams::sample spacing"} * $otdr::sol / $ior; # in km
     $var->{"fxdparams::range"} =  $dx * $var->{"fxdparams::num data points"};
     $var->{"fxdparams::resolution"} = $dx*1000.0; # in meters
     
-    print $otdr::utils::subpre,"resolution = ",($dx*1000.0)," m\n"; # convert to meters
-    print $otdr::utils::subpre,"range      = ",$var->{"fxdparams::range"}," km\n";
+    print $otdr::LOG $otdr::utils::subpre,"resolution = ",($dx*1000.0)," m\n";
+    print $otdr::LOG $otdr::utils::subpre,"range      = ",$var->{"fxdparams::range"}," km\n";
     
     return;
 }

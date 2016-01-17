@@ -1,13 +1,14 @@
 #!/usr/bin/perl -w
-package otdr::genparams;
 use strict;
 use Exporter;
-use FindBin qw($Bin);
-use lib "$Bin/.";
+# use FindBin qw($Bin);
+# use lib "$Bin/../..";
 use otdr::utils qw(get_val get_string get_hexstring);
 
 our @ISA = qw( Exporter );
 our @EXPORT_OK = qw( process_genparams );
+
+package otdr;
 
 *LOG = *STDERR;
 
@@ -41,11 +42,11 @@ sub _process_genparams1
     ($str,$hex,$count,$pos)= get_string( $bufref, $pos, 2 );
     my $lang = $str;
     if ( $count != 2 ) {
-	print $otdr::utils::pre,"ERROR: language should be two bytes; got $count bytes ($hex)\n";
-	print LOG "ERROR: language should be two bytes; got $count bytes ($hex)\n";
+	print $otdr::LOG $otdr::utils::pre,"ERROR: language should be two bytes; got $count bytes ($hex)\n";
+	# print LOG "ERROR: language should be two bytes; got $count bytes ($hex)\n";
 	return;
     }
-    print $otdr::utils::subpre," language: '$lang', next pos $pos\n";
+    print $otdr::LOG $otdr::utils::subpre," language: '$lang', next pos $pos\n";
 
     my @plist = (
 	"cable ID",    # ........... 0
@@ -78,7 +79,10 @@ sub _process_genparams1
 	    # print "DEBUG: get $plist[$i] ... '$str' ($hex) $count bytes\n";
 	}
 	
-	print $otdr::utils::subpre,"$i. $plist[$i]: $str\n";
+	my $label = "genparams::$plist[$i]";
+	$var->{$label} = $str;
+	
+	print $otdr::LOG $otdr::utils::subpre,"$i. $plist[$i]: $str\n";
     }
     
     return;
@@ -97,7 +101,7 @@ sub _process_genparams2
     # header and '\0'
     ($str,$hex,$count,$pos)= get_string( $bufref, $pos );
     if ( $str ne 'GenParams' ) {
-	print $otdr::utils::pre," ERROR: should be GenParams; got '$str' instead\n";
+	print $otdr::LOG $otdr::utils::pre," ERROR: should be GenParams; got '$str' instead\n";
 	return;
     }
     
@@ -105,11 +109,11 @@ sub _process_genparams2
     ($str,$hex,$count,$pos)= get_string( $bufref, $pos, 2 );
     my $lang = $str;
     if ( $count != 2 ) {
-	print $otdr::utils::pre,"ERROR: language should be two bytes; got $count bytes ($hex)\n";
-	print LOG "ERROR: language should be two bytes; got $count bytes ($hex)\n";
+	print $otdr::LOG $otdr::utils::pre,"ERROR: language should be two bytes; got $count bytes ($hex)\n";
+	# print LOG "ERROR: language should be two bytes; got $count bytes ($hex)\n";
 	return;
     }
-    print $otdr::utils::subpre," language: '$lang', next pos $pos\n";
+    print $otdr::LOG $otdr::utils::subpre," language: '$lang', next pos $pos\n";
     
     my @plist = (
 	"cable ID",    # ........... 0
@@ -148,7 +152,7 @@ sub _process_genparams2
 
 	my $label = "genparams::$plist[$i]";
 	$var->{$label} = $str;
-	print $otdr::utils::subpre,"$i. $plist[$i]: $str\n";
+	print $otdr::LOG $otdr::utils::subpre,"$i. $plist[$i]: $str\n";
     }
     
     return;

@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-package otdr::utils;
 use strict;
 use Exporter;
 
@@ -9,11 +8,16 @@ our @EXPORT_OK = qw( get_string get_val get_signed_val get_hexstring );
 # export by default
 # our @EXPORT = qw( get_string get_val get_hexstring );
 
-# can be redfined
-$otdir::utils::pre = "MAIN: ";
-$otdir::utils::subpre = "    : ";
+package otdr;
 
-*LOG = *STDERR;
+# can be redfined
+$otdr::utils::pre = "MAIN: ";
+$otdr::utils::subpre = "    : ";
+$otdr::LOG = *STDERR;
+
+# scaling factor used to calculate length: 
+# speed of light in vacuum is 299792458 m/sec *exact*!
+$otdr::sol = 299792.458/1.0e6; # = 0.299792458 km/usec
 
 # =======================================================
 # subroutines:
@@ -32,8 +36,8 @@ sub get_val
     my $j = $start + $nn - 1;
     for(my $i=0; $i<$nn; $i++) {
 	if ( $j > $#{$bufref} ) {
-	    print $otdir::utils::pre,"ERROR: array index out of range\n";
-	    print LOG "ERROR: array index out of range\n";
+	    print $otdr::LOG $otdr::utils::pre,"ERROR: array index out of range\n";
+	    # print LOG "ERROR: array index out of range\n";
 	    last;
 	}
 	$val = $val * 256 + ord($$bufref[$j]);
@@ -55,8 +59,8 @@ sub get_signed_val
     my $j = $start + $nn - 1;
     for(my $i=0; $i<$nn; $i++) {
 	if ( $j > $#{$bufref} ) {
-	    print $otdir::utils::pre,"ERROR: array index out of range\n";
-	    print LOG "ERROR: array index out of range\n";
+	    print $otdr::LOG $otdr::utils::pre,"ERROR: array index out of range\n";
+	    # print LOG "ERROR: array index out of range\n";
 	    last;
 	}
 	$val = $val * 256 + ord($$bufref[$j]);
@@ -85,8 +89,8 @@ sub get_hexstring
     
     for(my $i=$start; $i<$start+$nn; $i++) {
 	if ( $i > $#{$bufref} ) {
-	    print $otdir::utils::pre,"ERROR: array index out of range\n";
-	    print LOG "ERROR: array index out of range\n";
+	    print $otdr::LOG $otdr::utils::pre,"ERROR: array index out of range\n";
+	    # print LOG "ERROR: array index out of range\n";
 	    last;
 	}
 	$str .= sprintf "%02X ", ord($$bufref[$i]);
@@ -134,8 +138,8 @@ sub _get_string_fixed
 	    last;
 	}
 	if ( $pos > $#{$bufref} ) {
-	    print $otdir::utils::pre,"ERROR: array index out of range (2)\n";
-	    print LOG "ERROR: array index out of range (2)\n";
+	    print $otdr::LOG $otdr::utils::pre,"ERROR: array index out of range (2)\n";
+	    # print LOG "ERROR: array index out of range (2)\n";
 	    last;	    
 	}
 	

@@ -1,15 +1,16 @@
 #!/usr/bin/perl -w
-package otdr::supparams;
 use strict;
 use Exporter;
-use FindBin qw($Bin);
-use lib "$Bin/.";
+# use FindBin qw($Bin);
+# use lib "$Bin/../..";
 use otdr::utils qw(get_val get_string get_hexstring);
 
 our @ISA = qw( Exporter );
 our @EXPORT_OK = qw( process_supparams );
 
-*LOG = *STDERR;
+package otdr;
+
+# *LOG = *STDERR;
 
 sub process_supparams
 {
@@ -53,7 +54,7 @@ sub _process_supparams1
 	
 	my $label = "supparams::$plist[$i]";
 	$var->{$label} = $str;
-	print $otdr::utils::subpre,"$i. $plist[$i]: $str\n";
+	print $otdr::LOG $otdr::utils::subpre,"$i. $plist[$i]: $str\n";
     }
     
     return;
@@ -72,7 +73,7 @@ sub _process_supparams2
     # header and '\0'
     ($str,$hex,$count,$pos)= get_string( $bufref, $pos );
     if ( $str ne 'SupParams' ) {
-	print $otdr::utils::pre," ERROR: should be SupParams; got '$str' instead\n";
+	print $otdr::LOG $otdr::utils::pre," ERROR: should be SupParams; got '$str' instead\n";
 	return;
     }
     
@@ -92,7 +93,7 @@ sub _process_supparams2
 	
 	my $label = "supparams::$plist[$i]";
 	$var->{$label} = $str;
-	print $otdr::utils::subpre,"$i. $plist[$i]: $str\n";
+	print $otdr::LOG $otdr::utils::subpre,"$i. $plist[$i]: $str\n";
     }
     
     return;
