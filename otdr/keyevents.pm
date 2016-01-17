@@ -48,7 +48,7 @@ sub _process_keyevents1
     $var->{num_events} = $nev;
     
     
-    my $factor = 2e-5 * $var->{MAGIC_SCALE}/$var->{"fxdparams::index"};
+    my $factor = 1e-4 * $var->{MAGIC_SCALE}/$var->{"fxdparams::index"};
     
     my ($id,$dist,$slope,$splice,$refl);
     my $type;
@@ -106,7 +106,7 @@ sub _process_keyevents1
 	print $subpre,$subpre," comments: $comments\n";
     }
     
-    my ($total_loss,$fibstart,$fiblength, $orl, $fibstart2,$fiblength2);
+    my ($total_loss,$loss_start,$loss_finish, $orl, $orl_start,$orl_finish);
     
     if ( 0 ) {
 	my $disp = sprintf "0x%04X", $pos;
@@ -120,29 +120,29 @@ sub _process_keyevents1
 	print "DEBUG............. reset: next pos $disp ...........\n";
     }
     
-    ($total_loss,$pos) = get_val($bufref, $pos, 4);
+    ($total_loss,$pos) = get_signed_val($bufref, $pos, 4); # 00-03: total loss
     $total_loss *= 0.001;
+
+    ($loss_start,$pos) = get_signed_val($bufref, $pos, 4); # 04-07: loss start position
     
-    ($fibstart,$pos)   = get_hexstring($bufref, $pos, 4);
-    # $fibstart *= $factor;
+    ($loss_finish,$pos)= get_val($bufref, $pos, 4);        # 08-11: loss finish position
+    $loss_finish *= $factor;
     
-    ($fiblength,$pos)  = get_val($bufref, $pos, 4);
-    $fiblength *= $factor;
-    
-    ($orl,$pos)        = get_val($bufref,$pos,2);
+    ($orl,$pos)        = get_val($bufref,$pos,2);          # 12-13: optical return loss (ORL)
     $orl *= 0.001;
     
-    ($fibstart2,$pos)  = get_hexstring($bufref, $pos, 4);
-    # $fibstart2 *= $factor;
+    ($orl_start,$pos)  = get_signed_val($bufref, $pos, 4); # 14-17: ORL start position
     
-    ($fiblength2,$pos) = get_val($bufref, $pos, 4);
-    $fiblength2 *= $factor;
+    ($orl_finish,$pos) = get_val($bufref, $pos, 4);        # 18-21: ORL finish position
+    $orl_finish *= $factor;
     
     print $subpre,"Summary:\n";
     print $subpre,$subpre," total loss: $total_loss dB\n";
     print $subpre,$subpre," ORL: $orl dB\n";
-    print $subpre,$subpre," fiber length: $fiblength km (dup $fiblength2 km)\n";
-    print $subpre,$subpre," unknown: $fibstart (dup $fibstart2)\n";
+    print $subpre,$subpre," loss start: $loss_start km\n";
+    print $subpre,$subpre," loss end: $loss_finish km\n";
+    print $subpre,$subpre," ORL start: $orl_start km\n";
+    print $subpre,$subpre," ORL finish: $orl_finish km)\n";
     
     return;
 }
@@ -171,31 +171,30 @@ sub _process_keyevents2
     print $subpre,"$nev events\n";
     $var->{num_events} = $nev;
     
-    my $factor = 2e-5 * $var->{MAGIC_SCALE}/$var->{"fxdparams::index"};
+    my $factor = 1e-4 * $var->{MAGIC_SCALE}/$var->{"fxdparams::index"};
     
     my ($id,$dist,$slope,$splice,$refl);
     my $type;
-    my ($end_event,$start_next);
-    my ($seg1,$seg2);
-    my $ukno;
+    my ($end_prev,$start_curr,$end_curr,$start_next);
+    my $pkpos;
     my $comments;
     
     for(my $j=0; $j<$nev; $j++) {
-	($id,$pos)   = get_val($bufref, $pos, 2);
+	($id,$pos)   = get_val($bufref, $pos, 2); # 00-01: event number
 	
-	($dist,$pos) = get_val($bufref, $pos, 4);
-	$dist *= $factor;
-	
-	($slope,$pos)  = get_signed_val($bufref, $pos, 2);
+	($dist,$pos) = get_val($bufref, $pos, 4); # 02-05: time-of-travel; need to convert to distance
+	$dist *= $factor; # convert time to distance
+
+	($slope,$pos)  = get_signed_val($bufref, $pos, 2); # 06-07: slope
 	$slope *= 0.001;
 	
-	($splice,$pos) = get_signed_val($bufref, $pos, 2);
+	($splice,$pos) = get_signed_val($bufref, $pos, 2); # 08-09: splice loss
 	$splice *= 0.001;
 	
-	($refl,$pos)   = get_signed_val($bufref, $pos, 4);
+	($refl,$pos)   = get_signed_val($bufref, $pos, 4); # 10-13: reflection loss
 	$refl *= 0.001;
 	
-	($type,$hex,$count,$pos) = get_string( $bufref, $pos, 8 );
+	($type,$hex,$count,$pos) = get_string( $bufref, $pos, 8 ); # 14-21: event type
 	
 	if ( $type =~ m/(.)(.)9999LS/o ) {
 	    my $subtype = $1;
@@ -220,20 +219,21 @@ sub _process_keyevents2
 	    $type .= " [unknown type $type]";
 	}
 	
-	($seg1,$pos) = get_hexstring($bufref, $pos, 8);
-	($seg2,$pos) = get_hexstring($bufref, $pos, 8);
+	($end_prev,$pos)  = get_val($bufref,$pos,4); # 22-25: end of previous event
+	$end_prev  *= $factor;
 	
-	# rewind
-	$pos -= 8;
+	($start_curr,$pos) = get_val($bufref,$pos,4); # 26-29: start of current event
+	$start_curr *= $factor;
+		
+	($end_curr,$pos) = get_val($bufref, $pos, 4); # 30-33: end of current event
+	$end_curr *= $factor;
 	
-	($end_event,$pos)  = get_val($bufref,$pos,4);
-	$end_event  *= $factor;
-	
-	($start_next,$pos) = get_val($bufref,$pos,4);
+	($start_next,$pos) = get_val($bufref, $pos, 4); # 34-37: start of next event
 	$start_next *= $factor;
 	
-	($ukno,$pos) = get_hexstring($bufref, $pos, 4); # unknown 4 bytes
-
+	($pkpos,$pos) = get_val($bufref, $pos, 4); # 38-41: peak point of event
+	$pkpos *= $factor;
+	
 	($comments,$hex,$count,$pos) = get_string( $bufref, $pos );
 	
 	print $subpre,"Event $id: type $type\n";
@@ -241,41 +241,44 @@ sub _process_keyevents2
 	print $subpre,$subpre," slope: $slope dB/km\n";
 	print $subpre,$subpre," splice loss: $splice dB\n";
 	print $subpre,$subpre," refl loss: $refl dB\n";
-	print $subpre,$subpre," end-event: $end_event km\n";
-	print $subpre,$subpre," start-next: $start_next km\n";
+	print $subpre,$subpre," end of previous event: $end_prev km\n";
+	print $subpre,$subpre," start of current event: $start_curr km\n";
+	print $subpre,$subpre," end of current event: $end_curr km\n";
+	print $subpre,$subpre," start of next event: $start_next km\n";
+	print $subpre,$subpre," peak point of event: $pkpos km\n";
 	
-	print $subpre,$subpre," segments: $seg1 | $seg2\n";
-	print $subpre,$subpre," (unknown): $ukno\n";
 	print $subpre,$subpre," comments: $comments\n";
     }
     
-    my ($total_loss,$fibstart,$fiblength, $orl, $fibstart2,$fiblength2);
+    my ($total_loss,$loss_start,$loss_finish, $orl, $orl_start,$orl_finish);
 
     my $disp;
     
-    ($total_loss,$pos) = get_val($bufref, $pos, 4);
+    ($total_loss,$pos) = get_signed_val($bufref, $pos, 4); # 00-03: total loss
     $total_loss *= 0.001;
     
-    ($fibstart,$pos)   = get_signed_val($bufref, $pos, 4);
-    $fibstart *= $factor;
+    ($loss_start,$pos) = get_signed_val($bufref, $pos, 4); # 04-07: loss start position
+    $loss_start *= $factor;
     
-    ($fiblength,$pos)  = get_val($bufref, $pos, 4);
-    $fiblength *= $factor;
+    ($loss_finish,$pos)= get_val($bufref, $pos, 4);        # 08-11: loss finish position
+    $loss_finish *= $factor;
     
-    ($orl,$pos)        = get_val($bufref,$pos,2);
+    ($orl,$pos)        = get_val($bufref,$pos,2);          # 12-13: optical return loss (ORL)
     $orl *= 0.001;
     
-    ($fibstart2,$pos)  = get_signed_val($bufref, $pos, 4);
-    $fibstart2 *= $factor;
+    ($orl_start,$pos)  = get_signed_val($bufref, $pos, 4); # 14-17: ORL start position
+    $orl_start *= $factor;
     
-    ($fiblength2,$pos) = get_val($bufref, $pos, 4);
-    $fiblength2 *= $factor;
+    ($orl_finish,$pos) = get_val($bufref, $pos, 4);        # 18-21: ORL finish position
+    $orl_finish *= $factor;
     
     print $subpre,"Summary:\n";
     print $subpre,$subpre," total loss: $total_loss dB\n";
     print $subpre,$subpre," ORL: $orl dB\n";
-    print $subpre,$subpre," fiber length: $fiblength km (dup $fiblength2 km)\n";
-    print $subpre,$subpre," fiber start: $fibstart km (dup $fibstart2 km) [internal buffer]\n";
+    print $subpre,$subpre," loss start: $loss_start km\n";
+    print $subpre,$subpre," loss end: $loss_finish km\n";
+    print $subpre,$subpre," ORL start: $orl_start km\n";
+    print $subpre,$subpre," ORL finish: $orl_finish km)\n";
     
     return;
 }

@@ -19,8 +19,9 @@ my $div    = ("-"x80)."\n";
 $otdr::utils::pre = $pre;
 $otdr::utils::subpre = $subpre;
 
-# constants; do not change!
-my $MAGIC_SCALE = 1.498962239; # scaling factor used to correct for length
+# scaling factor used to calculate length: 
+# speed of light in vacuum is 299792458 m/sec *exact*!
+my $MAGIC_SCALE = 299792.458/1.0e6; # = 0.299792458 km/usec
 
 # -----------------------------------------------
 my $filename = shift or die("USAGE: $0 SOR_filename [dump(yes or no)]\n");
@@ -150,6 +151,9 @@ foreach my $block ( @blocklist ) {
     }elsif( $name eq 'Cksum' ) {
 	process_cksum(\@buffer, $pos, $var);
 	calc_cksum(\@buffer, $var);
+    }elsif ( $dump =~ m/^yes/oi ) {
+	# spit out in separate file
+	dump_block(\@buffer, $pos, $bsize, $name, $var);
     }
 }
 
@@ -189,3 +193,27 @@ sub process_block_header
     return ($version, $bsize, $pos);
 }
 
+# --------------------------------------------------------------
+sub dump_block
+{
+    my $bufref = shift;
+    my $pos = shift;
+    my $bsize = shift;
+    my $name = shift;
+    my $var = shift;
+    
+    my $filename = "$name.dat";
+    my $offset = length($name);
+    
+    open(DATA,">$filename") or 
+      die("ERROR: Cannot write to '$filename'\n");
+    
+    my $first = $pos+$offset+1;
+    my $last = $pos+$bsize-1;
+    print $otdir::utils::subpre," Dump from $pos to $last (not including block name)\n";
+    my $buffer = join('', @{$bufref}[$first .. $last] );
+    print DATA $buffer;
+    close(DATA);
+    
+    return;
+}

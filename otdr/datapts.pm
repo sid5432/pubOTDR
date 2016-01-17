@@ -73,7 +73,7 @@ sub _process_datapts1
     # print $otdr::utils::subpre,"next pos $pos\n";
     
     # this is the adjusted value
-    my $dx = $var->{"fxdparams::distance spacing"};
+    my $dx = $var->{"fxdparams::resolution"};
     
     my $max = 0;
     my $min = 65536;
@@ -156,7 +156,7 @@ sub _process_datapts2
     # print $otdr::utils::subpre,"next pos $pos\n";
     
     # this is the adjusted value
-    my $dx = $var->{"fxdparams::distance spacing"};
+    my $dx = $var->{"fxdparams::resolution"};
     
     my $max = 0;
     my $min = 65536;
