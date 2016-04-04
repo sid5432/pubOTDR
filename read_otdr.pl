@@ -2,6 +2,7 @@
 use strict;
 use FindBin qw($Bin);
 use lib "$Bin/../lib";
+use lib "$Bin";
 use otdr;
 
 my $var = {};
