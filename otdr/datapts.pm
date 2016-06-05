@@ -68,7 +68,8 @@ sub _process_datapts1
     print $otdr::LOG $otdr::utils::subpre,"num data points again = $val\n";
     
     ($val,$pos) = get_val( $bufref, $pos, 2 );
-    print $otdr::LOG $otdr::utils::subpre,"unknown #2 = $val\n";
+    my $scaling_factor = $val / 1000.0;
+    print $otdr::LOG $otdr::utils::subpre,"scaling factor = $scaling_factor\n";
     
     # print $otdr::LOG $otdr::utils::subpre,"next pos $pos\n";
     
@@ -87,8 +88,10 @@ sub _process_datapts1
 	$max = ($max > $val)? $max: $val;
 	$min = ($min < $val)? $min: $val;
     }
-    my $disp_min = sprintf "%.3f", $min/1000.0;
-    my $disp_max = sprintf "%.3f", $max/1000.0;
+    # my $disp_min = sprintf "%.3f", $min/1000.0;
+    # my $disp_max = sprintf "%.3f", $max/1000.0;
+    my $disp_min = sprintf "%.3f", $min/1000.0 * $scaling_factor;
+    my $disp_max = sprintf "%.3f", $max/1000.0 * $scaling_factor;
     
     print $otdr::LOG $otdr::utils::subpre,"before applying offset: max $disp_max dB, min $disp_min dB\n";
     
@@ -98,14 +101,14 @@ sub _process_datapts1
     for(my $i=0; $i<$N; $i++) {
 	# convert/scale to dB
 	if ( $offset eq 'STV' ) {
-	    $val = ($max - $dlist[$i])* 0.001;
+	    $val = ($max - $dlist[$i])* 0.001 * $scaling_factor;
 	}elsif ( $offset eq 'AFL' ) {
-	    $val = ($min - $dlist[$i])* 0.001;
+	    $val = ($min - $dlist[$i])* 0.001 * $scaling_factor;
 	}else{ # invert
-	    $val = -$dlist[$i]*0.001;
+	    $val = -$dlist[$i]*0.001 * $scaling_factor;
 	}
 	# more work but (maybe) less rounding issues
-	$x = $dx * $i * $var->{xscaling} / 1000.0; # output in meters
+	$x = $dx * $i * $var->{xscaling} / 1000.0; # output in km
 	print OUTPUT "$x\t$val\n";
     }
     close OUTPUT;
@@ -151,7 +154,8 @@ sub _process_datapts2
     print $otdr::LOG $otdr::utils::subpre,"num data points again = $val\n";
     
     ($val,$pos) = get_val( $bufref, $pos, 2 );
-    print $otdr::LOG $otdr::utils::subpre,"unknown #2 = $val\n";
+    my $scaling_factor = $val / 1000.0;
+    print $otdr::LOG $otdr::utils::subpre,"scaling factor = $scaling_factor\n";
     
     # print $otdr::LOG $otdr::utils::subpre,"next pos $pos\n";
     
@@ -170,8 +174,10 @@ sub _process_datapts2
 	$max = ($max > $val)? $max: $val;
 	$min = ($min < $val)? $min: $val;
     }
-    my $disp_min = sprintf "%.3f", $min/1000.0;
-    my $disp_max = sprintf "%.3f", $max/1000.0;
+    # my $disp_min = sprintf "%.3f", $min/1000.0;
+    # my $disp_max = sprintf "%.3f", $max/1000.0;
+    my $disp_min = sprintf "%.3f", $min /1000.0 * $scaling_factor;
+    my $disp_max = sprintf "%.3f", $max /1000.0 * $scaling_factor;
     
     print $otdr::LOG $otdr::utils::subpre,"before applying offset: max $disp_max dB, min $disp_min dB\n";
     
@@ -181,13 +187,14 @@ sub _process_datapts2
     for(my $i=0; $i<$N; $i++) {
 	# convert/scale to dB
 	if ( $offset eq 'STV' ) {
-	    $val = ($max - $dlist[$i])* 0.001;
+	    $val = ($max - $dlist[$i])* 0.001 * $scaling_factor;
 	}elsif ( $offset eq 'AFL' ) {
-	    $val = ($min - $dlist[$i])* 0.001;
+	    $val = ($min - $dlist[$i])* 0.001 * $scaling_factor;
 	}else{ # invert
-	    $val = -$dlist[$i]*0.001;
+	    $val = -$dlist[$i]*0.001 * $scaling_factor;
 	}
-	$x = $dx * $i; # more work but (maybe) less rounding issues
+	# more work but (maybe) less rounding issues
+	$x = $dx * $i / 1000.0; # output in km
 	print OUTPUT "$x\t$val\n";
     }
     close OUTPUT;
