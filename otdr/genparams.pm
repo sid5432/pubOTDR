@@ -75,8 +75,14 @@ sub _process_genparams1
 	    ($val,$pos) = get_val( $bufref, $pos, 4 );
 	    $str = sprintf "VALUE $val";
 	}else{
+	    my $origpos = $pos;
 	    ($str,$hex,$count,$pos)= get_string( $bufref, $pos );
-	    # print "DEBUG: get $plist[$i] ... '$str' ($hex) $count bytes\n";
+	    if ( $i == 1 ) {
+		$var->{insertion_point} = $origpos;
+		$var->{insertion_origcount}  = $count;
+		# my $newloc = sprintf "0x%x", $pos; # orig
+		# print "\t ****** DEBUG : i=$i: get $plist[$i] ... '$str' ($hex) $count bytes, at $loc .. $newloc\n";
+	    }
 	}
 	
 	my $label = "genparams::$plist[$i]";
@@ -147,7 +153,15 @@ sub _process_genparams2
 	    ($val,$pos) = get_val( $bufref, $pos, 8 );
 	    $str = sprintf "VALUE $val";
 	}else{
+	    # my $loc = sprintf "0x%x", $pos; # orig
+	    my $origpos = $pos;
 	    ($str,$hex,$count,$pos)= get_string( $bufref, $pos );
+	    if ( $i == 1 ) {
+		$var->{insertion_point} = $origpos;
+		$var->{insertion_origcount}  = $count;
+		# my $newloc = sprintf "0x%x", $pos; # orig
+		# print "\t ****** DEBUG : i=$i: get $plist[$i] ... '$str' ($hex) $count bytes, at $loc .. $newloc\n";
+	    }
 	}
 
 	my $label = "genparams::$plist[$i]";

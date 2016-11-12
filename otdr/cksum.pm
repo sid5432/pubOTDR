@@ -30,8 +30,10 @@ sub process_cksum
     
     my $val;
     
+    $var->{cksum_pos} = $pos;
     ($val,$pos) = get_val($bufref, $pos, 2);
     my $disp = sprintf "0x%04X", $val;
+    $var->{cksum} = $val;
     
     print $otdr::LOG $otdr::utils::subpre,"checksum $val ($disp)\n";
     return;
@@ -41,6 +43,9 @@ sub calc_cksum
 {
     my $bufref = shift;
     my $var = shift;
+    my $verify = shift || 'Yes';
+    # if $verify is 'No', then do not flip the last two bytes,
+    # and just return the checksum    
     
     my $b1 = $bufref->[-1];
     my $b2 = $bufref->[-2];
@@ -51,8 +56,10 @@ sub calc_cksum
     # print "* File checksum is $file_cksum ($hex) <----------\n";
     
     # swap last two bytes (because little endian)
-    $bufref->[-1] = $b2;
-    $bufref->[-2] = $b1;
+    if ( $verify eq 'Yes' ) {
+	$bufref->[-1] = $b2;
+	$bufref->[-2] = $b1;
+    }
     
     my $ctx = Digest::CRC->new(width=>16, poly=>0x1021, init=>0xffff, refin=>0, refout=>0,
 	xorout=>0x0000, cont=>0); # check=0x29b1 name="CRC-16/CCITT-FALSE"    
@@ -73,6 +80,10 @@ sub calc_cksum
     $ctx->add($buffer);
     
     $digest = $ctx->digest;
+    if ( $verify eq 'No' ) {
+	return $digest;
+    }
+    
     # print $otdr::utils::subpre,"CRC-16/CCITT-FALSE digest is %d (0x%x)\n", $digest, $digest;
     if ( $digest == 0 ) {
 	print $otdr::LOG $otdr::utils::subpre,"checksum MATCHES!\n";

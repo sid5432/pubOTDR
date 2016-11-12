@@ -26,6 +26,7 @@ sub parse
     my $output = shift || $filename;
     my $var = shift; # stash to save everything
     my $dump = shift || "no";
+    my $genparam_only = shift || 'no';
     
     my @arr = split /\//, $output;
     my $logfile;
@@ -49,6 +50,8 @@ sub parse
     }
 
     my @buffer = split //, $buffer;
+    # export
+    $var->{buffer} = \@buffer;
     
     # extra scaling factor of distance (for old AFL data)
     $var->{xscaling} = 1.0;
@@ -98,15 +101,17 @@ sub parse
     my $prev = $bsize;
     
     for(my $i=0; $i<$bnum; $i++) {
+	my $ref = {};
+	
 	($str,$hex,$count,$pos)= get_string( \@buffer, $pos );
 	# ($hex,$tmp)= get_hexstring( \@buffer, $pos, 6 );
-	
+	$ref->{header_pos} = $pos;
+	    
 	($version, $bsize, $pos) = process_block_header(\@buffer, $pos, $var);
 	# print $pre,"$str block: version $version, block size $bsize bytes (from $hex)\n";
 	my $spos = sprintf "0x%02X", $prev;
 	print $otdr::LOG $pre,"$str block: version $version, block size $bsize bytes, start at pos $spos\n";
 	
-	my $ref = {};
 	$ref->{name} = $str;
 	$ref->{bsize} = $bsize;
 	$ref->{start} = $prev;
@@ -118,10 +123,15 @@ sub parse
     $disp = sprintf "0x%X", $pos;
     print $otdr::LOG $div,"\n",$pre,"next position $disp\n",$div,"\n";
     
+    # export
+    $var->{blocklist} = \@blocklist;
+    
     # ---------------------------------------------------------------------
     # part 2: process contents of selected blocks
     foreach my $block ( @blocklist ) {
 	my $name = $block->{name};
+	next if ($name ne 'GenParams' and $genparam_only eq 'yes');
+	
 	my $bsize = $block->{bsize};
 	$pos = $block->{start};
 	my $disp = sprintf "0x%02X", $pos;
