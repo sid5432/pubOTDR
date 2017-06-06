@@ -125,6 +125,7 @@ sub _process_keyevents1
     $total_loss *= 0.001;
 
     ($loss_start,$pos) = get_signed_val($bufref, $pos, 4); # 04-07: loss start position
+    $loss_start *= $factor;
     
     ($loss_finish,$pos)= get_val($bufref, $pos, 4);        # 08-11: loss finish position
     $loss_finish *= $factor;
@@ -133,6 +134,7 @@ sub _process_keyevents1
     $orl *= 0.001;
     
     ($orl_start,$pos)  = get_signed_val($bufref, $pos, 4); # 14-17: ORL start position
+    $orl_start *= $factor;
     
     ($orl_finish,$pos) = get_val($bufref, $pos, 4);        # 18-21: ORL finish position
     $orl_finish *= $factor;
@@ -279,7 +281,7 @@ sub _process_keyevents2
     print $otdr::LOG $subpre,$subpre," loss start: $loss_start km\n";
     print $otdr::LOG $subpre,$subpre," loss end: $loss_finish km\n";
     print $otdr::LOG $subpre,$subpre," ORL start: $orl_start km\n";
-    print $otdr::LOG $subpre,$subpre," ORL finish: $orl_finish km)\n";
+    print $otdr::LOG $subpre,$subpre," ORL finish: $orl_finish km\n";
     
     return;
 }
