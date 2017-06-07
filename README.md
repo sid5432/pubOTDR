@@ -37,7 +37,8 @@ the encoding in the SOR data format and written a simple program (in
 Perl) that parses the SOR file and dumps the trace data into a file.
 (For a more detailed description, other than reading the source code,
 see [my blog
-post](http://morethanfootnotes.blogspot.com/2015/07/the-otdr-optical-time-domain.html?view=sidebar).
+post](http://morethanfootnotes.blogspot.com/2015/07/the-otdr-optical-time-domain.html?view=sidebar)).
+**For a Python version, see [pyOTDR](https://github.com/sid5432/pyOTDR).**
 
 
 Presented here for your entertainment are my findings, in the hope
@@ -49,7 +50,7 @@ rules that I have deduced from the sample files.  **use it at your own
 risk! You have been warned!** 
 
 
-(*Last Revised 2015-07-21*)
+(*Last Revised 2017-06-07*)
 
 
 
