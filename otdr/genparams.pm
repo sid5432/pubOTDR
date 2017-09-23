@@ -57,7 +57,7 @@ sub _process_genparams1
 	"location B", # ............ 4
 	"cable code/fiber type", # ............ 5
 	"build condition", # ....... 6: fixed 2 bytes char/string
-	"(unknown 2)", # ........... 7: fixed 4 bytes
+	"user offset", # ........... 7: fixed 4 bytes (from Andrew Jones)
 	"operator",    # ........... 8
 	"comments",    # ........... 9
     );
@@ -71,9 +71,9 @@ sub _process_genparams1
 	}elsif ( $i==2 ) { # wavelength
 	    ($val,$pos) = get_val( $bufref, $pos, 2 );
 	    $str = "$val nm";
-	}elsif( $i==7 ) { # unknown 2; 4 bytes
-	    ($val,$pos) = get_val( $bufref, $pos, 4 );
-	    $str = sprintf "VALUE $val";
+	}elsif( $i==7 ) { # user offset; 4 bytes int
+	    ($val,$pos) = get_signed_val( $bufref, $pos, 4 );
+	    $str = sprintf "%d", $val;
 	}else{
 	    my $origpos = $pos;
 	    ($str,$hex,$count,$pos)= get_string( $bufref, $pos );
@@ -132,9 +132,11 @@ sub _process_genparams2
 	"location B", # ............ 5
 	"cable code/fiber type", # ............ 6
 	"build condition", # ....... 7: fixed 2 bytes char/string
-	"(unknown 2)", # ........... 8: fixed 8 bytes
-	"operator",    # ........... 9
-	"comments",    # ........... 10
+	"user offset", # ........... 8: fixed 4 bytes int (Andrew Jones)
+	"user offset distance", # .. 9: fixed 4 bytes int (Andrew Jones)
+	
+	"operator",    # ........... 10
+	"comments",    # ........... 11
     );
 
     my $tmp;
@@ -149,9 +151,9 @@ sub _process_genparams2
 	}elsif ( $i==3 ) { # wavelength
 	    ($val,$pos) = get_val( $bufref, $pos, 2 );
 	    $str = "$val nm";
-	}elsif( $i==8 ) {
-	    ($val,$pos) = get_val( $bufref, $pos, 8 );
-	    $str = sprintf "VALUE $val";
+	}elsif( $i==8 or $i==9) {
+	    ($val,$pos) = get_signed_val( $bufref, $pos, 4 );
+	    $str = sprintf "%d", $val;
 	}else{
 	    # my $loc = sprintf "0x%x", $pos; # orig
 	    my $origpos = $pos;

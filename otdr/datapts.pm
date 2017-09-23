@@ -61,9 +61,12 @@ sub _process_datapts1
 	  "is $N instead of ",$var->{"fxdparams::num data points"},"\n";
     }
     
-    ($val,$pos) = get_val( $bufref, $pos, 2 );
-    print $otdr::LOG $otdr::utils::subpre,"unknown #1 = $val\n";
-
+    ($val,$pos) = get_signed_val( $bufref, $pos, 2 );
+    print $otdr::LOG $otdr::utils::subpre,"Number of traces = $val\n";
+    if ( $val > 1 ) {
+	die("!!! Cannot handle more than one trace yet.  Sorry.\n");
+    }
+    
     ($val,$pos) = get_val( $bufref, $pos, 4 );
     print $otdr::LOG $otdr::utils::subpre,"num data points again = $val\n";
     
@@ -147,9 +150,12 @@ sub _process_datapts2
 	  "is $N instead of ",$var->{"fxdparams::num data points"},"\n";
     }
     
-    ($val,$pos) = get_val( $bufref, $pos, 2 );
-    print $otdr::LOG $otdr::utils::subpre,"unknown #1 = $val\n";
-
+    ($val,$pos) = get_signed_val( $bufref, $pos, 2 );
+    print $otdr::LOG $otdr::utils::subpre,"Number of traces = $val\n";
+    if ( $val > 1 ) {
+	die("!!! Cannot handle more than one trace yet.  Sorry.\n");
+    }
+    
     ($val,$pos) = get_val( $bufref, $pos, 4 );
     print $otdr::LOG $otdr::utils::subpre,"num data points again = $val\n";
     
